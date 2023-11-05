@@ -15,10 +15,6 @@ app.use(express.json())
 // mongodb data base 
 
 
-// bookUser
-// WAFg7jpCJv3DfxN7
-
-
 
 console.log(process.env.DB_PASS)
 
@@ -37,6 +33,32 @@ async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
+
+
+
+        //  data collection from mongodb 
+
+        const booksCollection = client.db('bookLibrary').collection('books')
+
+
+        // get data from mongodb 
+
+
+        app.get('/books', async (req, res) => {
+            const cursor = booksCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+
+
+
+
+
+
+
+
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
