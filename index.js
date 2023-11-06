@@ -49,12 +49,29 @@ async function run() {
             const result = await cursor.toArray()
             res.send(result)
         })
+        app.get('/allBooks', async (req, res) => {
+            const cursor = booksCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+
+        // addBook 
 
 
 
+        // get data by category 
+        // get data for dynamic brand route to show brand product
 
-
-
+        app.get("/allBooks/:category", async (req, res) => {
+            const category = req.params.category;
+            console.log(category)
+            const query = { category: category }
+            const cursor = booksCollection.find(query);
+            const result = await cursor.toArray(cursor);
+            console.log(result)
+            res.send(result)
+        })
 
 
 
