@@ -40,6 +40,7 @@ async function run() {
 
         const booksCollection = client.db('bookLibrary').collection('books')
         const addBooksCollection = client.db('bookLibrary').collection('addBooks')
+        const addBorrowBooksCollection = client.db('bookLibrary').collection('borrowBooks')
 
 
         // get data from mongodb 
@@ -93,6 +94,37 @@ async function run() {
 
         })
 
+        // get user some data from borrow book 
+
+        app.get('/borrowBook', async (req, res) => {
+            console.log(req.query.email)
+            let query = {}
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await addBorrowBooksCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        // post borrow book 
+
+        app.post('/borrowBook', async (req, res) => {
+            const borrowBook = req.body
+            console.log(borrowBook)
+            const result = await addBorrowBooksCollection.insertOne(borrowBook)
+            res.send(result)
+
+        })
+
+
+        // delete borrow book 
+
+        app.delete('/borrowBook/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await addBorrowBooksCollection.deleteOne(query)
+            res.send(result)
+        })
 
 
 
