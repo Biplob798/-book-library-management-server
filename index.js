@@ -73,9 +73,28 @@ async function run() {
             res.send(result)
         })
 
+
+        // get data by id for read book 
+
+        app.get('/allBooks/readBook/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await booksCollection.findOne(query)
+            res.send(result)
+            console.log(result)
+        })
         //  get data for dynamic id route to show category book
 
         app.get('/allBooks/books/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await booksCollection.findOne(query)
+            res.send(result)
+            console.log(result)
+        })
+        //  get data for dynamic id route to show update book
+
+        app.get('/allBooks/update/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await booksCollection.findOne(query)
@@ -113,6 +132,31 @@ async function run() {
             console.log(borrowBook)
             const result = await addBorrowBooksCollection.insertOne(borrowBook)
             res.send(result)
+
+        })
+
+        // update data by put method 
+
+        app.put('/allBooks/update/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updateBook = req.body;
+            const book = {
+                $set: {
+                    name: updateBook.name,
+                    category: updateBook.category,
+                    author: updateBook.author,
+                    rating: updateBook.rating,
+                    image: updateBook.image,
+                },
+            };
+            const result = await booksCollection.updateOne(
+                filter,
+                book,
+                options
+            );
+            res.send(result);
 
         })
 
