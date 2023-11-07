@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
@@ -39,6 +39,7 @@ async function run() {
         //  data collection from mongodb 
 
         const booksCollection = client.db('bookLibrary').collection('books')
+        const addBooksCollection = client.db('bookLibrary').collection('addBooks')
 
 
         // get data from mongodb 
@@ -58,10 +59,8 @@ async function run() {
 
         // addBook 
 
-
-
         // get data by category 
-        // get data for dynamic brand route to show brand product
+        // get data for dynamic category route to show category book
 
         app.get("/allBooks/:category", async (req, res) => {
             const category = req.params.category;
@@ -72,6 +71,31 @@ async function run() {
             console.log(result)
             res.send(result)
         })
+
+        //  get data for dynamic id route to show category book
+
+        app.get('/allBooks/books/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await booksCollection.findOne(query)
+            res.send(result)
+            console.log(result)
+        })
+
+
+        // post add book collection 
+
+        app.post('/addBooks', async (req, res) => {
+            const addBooks = req.body
+            console.log(addBooks)
+            const result = await addBooksCollection.insertOne(addBooks)
+            res.send(result)
+
+        })
+
+
+
+
 
 
 
