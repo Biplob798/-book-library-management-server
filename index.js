@@ -154,6 +154,15 @@ async function run() {
             res.send(result)
         })
 
+        // all book api for pagination
+
+
+
+        app.get('/allBooksCount', async (req, res) => {
+            const count = await booksCollection.estimatedDocumentCount()
+            res.send({ count })
+        })
+
         // addBook 
 
         // get data by category 
@@ -212,6 +221,7 @@ async function run() {
         })
 
         // get user some data from borrow book 
+
 
         app.get('/borrowBook', async (req, res) => {
             console.log(req.query.email)
