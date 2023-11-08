@@ -1,5 +1,7 @@
 const express = require('express')
 const cors = require('cors')
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
@@ -8,8 +10,50 @@ const port = process.env.PORT || 5000
 
 // middleware 
 
-app.use(cors())
+app.use(cors({
+    origin: [
+        'http://localhost:5173', 'http://localhost:5174'
+    ],
+    credentials: true
+}))
 app.use(express.json())
+
+app.use(cookieParser())
+
+
+
+//  create middleware logger 
+
+const logger = async (req, res, next) => {
+    console.log('log:info', req.host, req.originalUrl)
+    next()
+}
+
+
+
+//  create middleware verify
+
+const verifyToken = async (req, res, next) => {
+    const token = req.cookies?.token
+    console.log('value of token in middleware', token)
+    // no token available
+    if (!token) {
+        return res.status(401).send({ message: 'not authorized' })
+    }
+
+    // jwt verify 
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        // err 
+        if (err) {
+            console.log(err)
+            return res.status(401).send({ message: 'unauthorized access' })
+        }
+        console.log('value in the token', decoded)
+        req.user = decoded
+        next()
+    })
+}
 
 
 // mongodb data base 
@@ -43,6 +87,41 @@ async function run() {
         const addBorrowBooksCollection = client.db('bookLibrary').collection('borrowBooks')
 
 
+
+
+        // auth related api 
+
+        // for login user 
+
+        app.post('/jwt', logger, async (req, res) => {
+            const user = req.body
+            console.log('user for token', user)
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '12h' })
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none'
+            }).send({ success: true })
+        })
+
+        // logout user 
+        app.post('/logout', async (req, res) => {
+            const user = req.body
+            console.log('user for token delete', user)
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+        })
+
+
+
+
+
+
+
+
+
+
+
+        // server related api 
         // get data from mongodb 
 
 
@@ -51,12 +130,29 @@ async function run() {
             const result = await cursor.toArray()
             res.send(result)
         })
+
+        // use jwt verify
+
+        // app.get('/allBooks', logger, verifyToken, async (req, res) => {
+        //     console.log(req.query.email)
+        //     console.log('cook cook owner', req.user)
+        //     if (req.user.email !== req.query.email) {
+        //         return res.status(403).send({ message: 'forbidden access' })
+        //     }
+        //     let query = {}
+        //     if (req.query?.email) {
+        //         query = { email: req.query.email }
+        //     }
+        //     const cursor = booksCollection.find(query)
+        //     const result = await cursor.toArray()
+        //     res.send(result)
+        // })
+
         app.get('/allBooks', async (req, res) => {
             const cursor = booksCollection.find()
             const result = await cursor.toArray()
             res.send(result)
         })
-
 
         // addBook 
 
@@ -104,8 +200,10 @@ async function run() {
 
 
         // post add book collection 
-
-        app.post('/addBooks', async (req, res) => {
+        // jwt verify 
+        app.post('/addBooks', verifyToken, logger, async (req, res) => {
+            console.log(req.query.email)
+            console.log('cook cook', req.cookies)
             const addBooks = req.body
             console.log(addBooks)
             const result = await addBooksCollection.insertOne(addBooks)
